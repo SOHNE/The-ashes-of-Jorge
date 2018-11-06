@@ -1,0 +1,3 @@
+WIDTH = 824
+HEIGHT = 508
+FPS = 60
