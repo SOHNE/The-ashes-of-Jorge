@@ -1,4 +1,28 @@
+from __future__ import print_function
 import pygame as pg
+
+def bytesto(bytes, to, bsize=1024):
+    """convert bytes to megabytes, etc.
+       sample code:
+           print('mb= ' + str(bytesto(314575262000000, 'm')))
+       sample output: 
+           mb= 300002347.946
+    """
+
+    a = {'k' : 1, 'm': 2, 'g' : 3, 't' : 4, 'p' : 5, 'e' : 6 }
+    r = float(bytes)
+    for i in range(a[to]):
+        r = r / bsize
+
+    return(r)
+r'''
+    import psutil
+    import platform
+    def __info__():
+        print("[SYS_INFO]")
+        print("{:.2f}% CPU | {:.2f} FREE MB".format(psutil.cpu_percent(), bytesto(psutil.virtual_memory()[1], 'm')))
+        print(platform.machine(), platform.system(), platform.version())
+'''
 
 class Game(object):
     """
@@ -92,9 +116,6 @@ class BaseState(object):
         self.persist = persistent        
         
     def get_event(self, event):
-        """
-        Handle a single event passed by the Game object.
-        """
         pass
         
     

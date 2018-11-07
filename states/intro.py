@@ -32,7 +32,7 @@ class SplashScreen(BaseState):
 
     def update(self, dt):
         self.timo += dt
-        if self.timo > 1500: #por tempo, por agora
+        if self.timo > 15: #por tempo, por agora
             self.timo = 0
             self.done = True
 
