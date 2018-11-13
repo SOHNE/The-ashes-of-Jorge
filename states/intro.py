@@ -1,13 +1,14 @@
 import pygame as pg
 from fsm import *
 from config import *
+#from resource_manager import *
 
 class SplashScreen(BaseState):
     def __init__(self):
         super(SplashScreen, self).__init__()
         #pg.sprite.Sprite.__init__(self)
 
-        self.all_images = ["recursos/loading/jorge/{}.png".format(i) for i in range(0,8)]
+        self.all_images = ["data/loading/jorge/{}.png".format(i) for i in range(0,8)]
         self.contador = 0
         self.next_state = "GAMEPLAY"
         self.image = pg.image.load(self.all_images[self.contador])
@@ -18,9 +19,9 @@ class SplashScreen(BaseState):
         self.frame_c = FPS
         
         #font
-        self.fontObj = pg.font.Font('recursos/fonts/pixelmix.ttf', 26)
+        self.fontObj = pg.font.Font('data/fonts/pixelmix.ttf', 26)
         self.textSurfaceObj = self.fontObj.render('The ashes of Jorge', True, (0,0,0))
-        self.fontObj = pg.font.Font('recursos/fonts/pixelmix.ttf', 14)
+        self.fontObj = pg.font.Font('data/fonts/pixelmix.ttf', 14)
         self.loadingObj = self.fontObj.render('carregando', True, (0,0,0))
         self.textRectObj = self.textSurfaceObj.get_rect()
         self.loadingRectObj = self.loadingObj.get_rect()

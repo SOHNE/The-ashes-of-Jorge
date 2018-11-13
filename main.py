@@ -18,4 +18,4 @@ if __name__ == "__main__":
     game = fsm.Game(screen, states, "SPLASH")
     game.run()
     pg.quit()
-    sys.exit()
+    sys.exit(0)
