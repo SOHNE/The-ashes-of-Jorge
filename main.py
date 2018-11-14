@@ -5,6 +5,7 @@ import pygame as pg
 import fsm #finite state machine
 from states.intro import *
 from states.gameplay import *
+from states.gameover import *
 from config import *
     
 #conexão com o servidor aqui
@@ -13,7 +14,8 @@ if __name__ == "__main__":
     pg.init()
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     states = {"SPLASH": SplashScreen(),
-              "GAMEPLAY": Gameplay()
+              "GAMEPLAY": Gameplay(),
+              "OVER": Over()
               }
     game = fsm.Game(screen, states, "SPLASH")
     game.run()

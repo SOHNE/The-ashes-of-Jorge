@@ -8,6 +8,8 @@ from config import *
 from .classes import *
 #import resource_manager
 
+import random
+
 #pid = os.getpid()
 #py = psutil.Process(pid)
 
@@ -23,20 +25,18 @@ class Gameplay(BaseState):
 
         self.fontObj = pg.font.Font('data/fonts/Minecraft.ttf', 26)
         self.textObj = self.fontObj.render('0 POINTS', True, (0,0,0))
-        self.lifeObj = self.fontObj.render('0/0', True, (0,0,0))
-        self.lifeRect = self.lifeObj.get_rect()
         self.textRect = self.textObj.get_rect()
-        self.textRect.center  = (150, 50)
+        self.textRect.center  = (186, 35)
 
 
         self.stage = {
             "X": 0, #cordenada x
             "W": self.fundoX, # tamanho
             "I": (HEIGHT / 2) + 156, # inicio do scroll
-            "H": 1 # horda
+            "H": 2 # horda
             }
 
-    def startup(self, persistent):
+    def startup(self, persist):
         self.all_sprites = pg.sprite.Group()
         self.balas = pg.sprite.Group()
         self.player = Player((2,1))
@@ -45,22 +45,21 @@ class Gameplay(BaseState):
         self.all_sprites.add(self.inimigos)
         self.all_sprites.add(self.player)
         self.all_sprites.add(self.objects)
+        self.persist['score'] = self.player.attributes['SCORE']
         #
+
         for i in range(0, self.stage['H']):
             bala = Inimigo(self.player)
 
             self.all_sprites.add(bala)
             self.inimigos.add(bala)
-        #
-
-        self.lifeRect.center  = (120, 100)
 
     def get_event(self, event):
         if event.type == pg.QUIT:
             self.quit = True
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_ESCAPE:
-                pg.quit()
+                self.quit = True
 
             if event.key == pg.K_k:
                 self.player.atira(self.all_sprites, self.balas)
@@ -71,10 +70,12 @@ class Gameplay(BaseState):
                 self.player.go_left()
             if event.key == pg.K_d:
                 self.player.go_right()
-            if event.key == pg.K_w:
-                self.player.go_up()
             if event.key == pg.K_SPACE:
                 self.player.jump()
+            if event.key == pg.K_UP:
+                self.next_state = "OVER"
+                self.persist['score'] = self.player.attributes['SCORE']
+                self.done = True
 
         if event.type == pg.KEYUP:
             if event.key == pg.K_a and self.player.x_ < 0:
@@ -83,21 +84,26 @@ class Gameplay(BaseState):
                 self.player.stop(2)
 
     def update(self, dt):
-        self.textObj = self.fontObj.render('{} POINTS'.format(self.player.attributes['SCORE']), True, (0,0,0))
-        self.lifeObj = self.fontObj.render('{}'.format(self.player.attributes['ULT']), True, (0,0,0))
+        if self.player.attributes['HP'] <= 0:
+            self.next_state = "OVER"
+            self.persist['score'] = self.player.attributes['SCORE']
+            self.done = True
+
+
+        self.textObj = self.fontObj.render('{} PONTOS'.format(self.player.attributes['SCORE']), True, pg.Color("white"))
+
         tiroteio = pg.sprite.groupcollide(self.inimigos, self.balas, False, pg.sprite.collide_mask)
         #es = pg.sprite.spritecollideany(umb, all_sprites)
         #esfaqueamento = pg.sprite.groupcollide(self.player, self.inimigos, False, pg.sprite.collide_mask)
         if tiroteio:
             for inimigo, bala in tiroteio.items():
                 dano = self.player.attributes['ATT'] - inimigo.attributes['DEF']
-                if (dano >= inimigo.attributes['HP']) or (inimigo.attributes['HP'] < 0):
+                if (dano >= inimigo.attributes['HP']) or (inimigo.attributes['HP'] < 0) and not self.player.invencibilidade:
                     bala[0].kill()
-                    inimigo.morre(self.all_sprites, self.objects)
+                    inimigo.morre(self.all_sprites, self.objects, player=True)
                     self.player.attributes['SCORE'] += inimigo.attributes['SCORE']
                     self.player.chargeUlt(inimigo.attributes['SCORE'] // 3)
                 else:
-                    print(dano)
                     inimigo.attributes['HP'] -= dano
 
         contato = pg.sprite.spritecollideany(self.player, self.inimigos)
@@ -109,16 +115,22 @@ class Gameplay(BaseState):
             else:
                 dano = self.player.attributes['ATT'] - contato.attributes['DEF']
                 if (dano >= contato.attributes['HP']) or (contato.attributes['HP'] < 0):
-                    contato.morre(self.all_sprites, self.objects)
+                    contato.morre(self.all_sprites, self.objects, player=True)
                     self.player.attributes['SCORE'] += contato.attributes['SCORE']
-                    self.player.chargeUlt(contato.attributes['SCORE'] // 3)
+                    change = random.randint( (contato.attributes['SCORE'] // 3) //2, contato.attributes['SCORE'] // 3)
+                    self.player.chargeUlt(change)
                 else:
                     contato.attributes['HP'] -= dano
                 #self.player.rect.x += -75 if self.player.facing == 'esquerda' else 75
 
+        contato = pg.sprite.spritecollideany(self.player, self.objects)
+        if contato:
+            self.player.attributes['HP'] += 1 if self.player.attributes['HP'] < self.player.attributes['MAXHP'] else 0
+            contato.kill()
+
         if len(self.inimigos) == 0:
             self.stage['H'] += 3
-            for i in range(0, self.stage['H'] + 1):
+            for i in range(0, self.stage['H']):
                 bala = Inimigo(self.player)
 
                 self.all_sprites.add(bala)
@@ -142,6 +154,9 @@ class Gameplay(BaseState):
         self.all_sprites.update()
         self.all_sprites.draw(surface)
         surface.blit(self.textObj, self.textRect)
-        surface.blit(self.lifeObj, self.lifeRect)
-        pg.draw.rect(surface, (245,0,0), (120, 50, 200 - (2 * (50 - self.player.attributes['MAXHP'])), 10) )
-        pg.draw.rect(surface, (00,255,0), (120, 50, 200 - (2 * (50 - self.player.attributes['HP'])), 10) ) 
+
+        try:
+            pg.draw.rect(surface, (245,0,0), (120, 50, 200 - (2 * (50 - self.player.attributes['MAXHP'])), 10) )
+            pg.draw.rect(surface, (00,255,0), (120, 50, 200 - (2 * (50 - self.player.attributes['HP'])), 10) ) 
+        except (TypeError):
+            pass

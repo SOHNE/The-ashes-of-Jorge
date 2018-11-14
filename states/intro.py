@@ -33,13 +33,15 @@ class SplashScreen(BaseState):
 
     def update(self, dt):
         self.timo += dt
-        if self.timo > 15: #por tempo, por agora
+        '''if self.timo > 15: #por tempo, por agora
             self.timo = 0
-            self.done = True
+            self.done = True'''
 
     def get_event(self, event):
         if event.type == pg.QUIT:
             self.quit = True
+            self.done = True
+        if event.type == pg.KEYDOWN and event.key == pg.K_UP:
             self.done = True
     
     def draw(self, surface):
