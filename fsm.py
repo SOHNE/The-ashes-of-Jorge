@@ -86,7 +86,7 @@ class Game(object):
         spent inside this while loop.
         """ 
         while not self.done:
-            pg.display.set_caption("{:.1f} FPS".format(self.clock.get_fps()))
+            pg.display.set_caption("The ashes of Jorge @ {:.1f} FPS".format(self.clock.get_fps()))
             dt = self.clock.tick(self.fps)
             self.event_loop()
             self.update(dt)

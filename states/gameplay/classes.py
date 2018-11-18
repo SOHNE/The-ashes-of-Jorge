@@ -10,9 +10,11 @@ import random
 #py = psutil.Process(pid)
 
 class Inimigo(pg.sprite.Sprite):
-    def __init__(self, player):
+    def __init__(self, player, stage=None):
         pg.sprite.Sprite.__init__(self)
-        self.frame_c, self.contador = FPS,0 
+        self.frame_c, self.contador = FPS, 0 
+
+        stage = stage if stage else 1
 
         self.all_images = ["data/image/inimigo/{}.png".format(i) for i in range(0,2)]
 
@@ -21,27 +23,54 @@ class Inimigo(pg.sprite.Sprite):
         self.image = self.image.convert_alpha()
 
         self.mask = pg.mask.from_surface(self.image)
-        self.player = player # retirar isso dps
+        self.player = player
         self.rect = self.image.get_rect()
+
+        self.x_ = random.randint(2, 6)
+        if self.x_ == 6:
+            if random.choice([0,5]) < 4:
+                self.x_ = 5
+        self.y_ = 10
         escolha = random.choice(['direita', 'esquerda'])
         self.facing = escolha
         if escolha  == 'esquerda':
             self.rect.center = ((1024 + 380), HEIGHT - self.rect.height)
         elif escolha == 'direita':
             self.rect.center = ( - 380, HEIGHT - self.rect.height)
-        self.x_ = random.randint(3, 6)
-        self.y_ = 10
         self.isjump = False
         self.isnear = False
 
         self.fliped = pg.transform.flip(self.image, True, False)
 
         self.attributes = {
-            'HP': 10,
-            'ATT': 5,
-            'DEF': 1,
-            'SCORE': 25
+            'MAXHP': 45 * (stage // 3),
+            'HP': 10 * (stage // 2),
+            'ATT': 5 * (stage // 3),
+            'DEF': 1 * (stage // 2),
+            'SCORE': 35 * (stage // 4)
             }
+        if self.attributes['HP'] > self.attributes['MAXHP']: self.attributes['HP'] = self.attributes['MAXHP']
+
+    def startup(self, persistent):
+        escolha = random.choice(['direita', 'esquerda'])
+        self.facing = escolha
+        if escolha  == 'esquerda':
+            self.rect.center = ((1024 + 380), HEIGHT - self.rect.height)
+        elif escolha == 'direita':
+            self.rect.center = ( - 380, HEIGHT - self.rect.height)
+        self.isjump = False
+        self.isnear = False
+
+        self.fliped = pg.transform.flip(self.image, True, False)
+
+        self.attributes = {
+            'MAXHP': 35 * (stage // 2),
+            'HP': 10 * stage,
+            'ATT': 5 * stage,
+            'DEF': 1 * stage,
+            'SCORE': 25 * stage
+            }
+        if self.attributes['HP'] > self.attributes['MAXHP']: self.attributes['HP'] = self.attributes['MAXHP']
 
     def jump(self):
         self.isjump = True
@@ -64,6 +93,7 @@ class Inimigo(pg.sprite.Sprite):
     def update(self):
         self.calc_grav()
         self.rect.y += self.y_
+        print(self.attributes)
         #Movimentação do inimigo
         if self.rect.center[0] > self.player.rect.center[0] + 15:
             self.rect.x -= self.x_
@@ -90,19 +120,24 @@ class Inimigo(pg.sprite.Sprite):
     def morre(self, all_sprites, sprites_group, player=False):
         if player:
             a = random.randint(0,21)
-            valido = ['HP', 'ATT', 'DEF']
+            valido = ['HP', 'ATQ', 'DEF']
             if a <= 6:
-                escolha = Objects(random.choice(valido), self.rect.center)
+                escolha = Objects(random.choice(valido), self.rect.center, self.player)
                 all_sprites.add(escolha)
                 sprites_group.add(escolha)
         self.kill()
 
 
 class Objects(pg.sprite.Sprite):
-    def __init__(self, types, location):
+    def __init__(self, types, location, player):
         pg.sprite.Sprite.__init__(self)
+        self.player = player
+        self.types = types
         if types == 'HP':
             self.image = pg.image.load('data/image/objects/life.png')
+            self.image = pg.transform.scale(self.image, (25, 25))
+        elif types == 'ATQ':
+            self.image = pg.image.load('data/image/objects/atq.png')
             self.image = pg.transform.scale(self.image, (25, 25))
         else:
             self.image = pg.image.load('data/image/objects/shield.jpg')
@@ -118,6 +153,17 @@ class Objects(pg.sprite.Sprite):
 
         self.y_ = -4
         self.life = 0
+
+    def pega(self):
+        rand = random.randint(1, random.randint(2, 20))
+        if self.types == 'HP':
+            if self.player.attributes['HP'] + rand < self.player.attributes['MAXHP']:
+                self.player.attributes['HP'] += rand
+        elif self.types == 'ATQ':
+            self.player.attributes['ATT'] += rand
+        else:
+            self.player.attributes['DEF'] += rand
+        self.kill()
 
     def calc_grav(self):
         """ Calcula o efeito da gravidade. """

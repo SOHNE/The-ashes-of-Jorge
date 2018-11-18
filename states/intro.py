@@ -20,29 +20,32 @@ class SplashScreen(BaseState):
         
         #font
         self.fontObj = pg.font.Font('data/fonts/pixelmix.ttf', 26)
-        self.textSurfaceObj = self.fontObj.render('The ashes of Jorge', True, (0,0,0))
+        self.titleObj = self.fontObj.render('The ashes of Jorge', True, (0,0,0))
         self.fontObj = pg.font.Font('data/fonts/pixelmix.ttf', 14)
-        self.loadingObj = self.fontObj.render('carregando', True, (0,0,0))
-        self.textRectObj = self.textSurfaceObj.get_rect()
-        self.loadingRectObj = self.loadingObj.get_rect()
-        self.textRectObj.center  = ((WIDTH /2), (HEIGHT /2) - 89)
-        self.loadingRectObj.center  = ((WIDTH /2), (HEIGHT /2) + 99)
+        self.enterObj = self.fontObj.render('Pressione ENTER/RETURN para jogar', True, (0,0,0))
+        self.escObj = self.fontObj.render('Pressione ESC para sair', True, (0,0,0))
+        self.anoObj = self.fontObj.render('2018 -- Leandro, Victoria, Dyego Marques', True, (0,0,0))
+
+        self.titleRect = self.titleObj.get_rect()
+        self.enterRect = self.enterObj.get_rect()
+        self.escRect = self.enterObj.get_rect()
+        self.anoRect = self.enterObj.get_rect()
+
+        self.escRect.center  = ((WIDTH /2), (HEIGHT /2) + 120)
+        self.enterRect.center  = ((WIDTH /2), (HEIGHT /2) + 99)
+        self.titleRect.center  = ((WIDTH /2), (HEIGHT /2) - 89)
         #
         self.doto = 1
-        self.timo = 0
-
-    def update(self, dt):
-        self.timo += dt
-        '''if self.timo > 15: #por tempo, por agora
-            self.timo = 0
-            self.done = True'''
 
     def get_event(self, event):
         if event.type == pg.QUIT:
             self.quit = True
             self.done = True
-        if event.type == pg.KEYDOWN and event.key == pg.K_UP:
-            self.done = True
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_RETURN:
+                self.done = True
+            if event.key == pg.K_ESCAPE:
+                self.quit = True
     
     def draw(self, surface):
         if self.frame_c <= 0:
@@ -50,12 +53,14 @@ class SplashScreen(BaseState):
             self.image = pg.image.load(self.all_images[self.contador])
             self.image = pg.transform.scale(self.image, (72,112))
             self.image = pg.transform.flip(self.image, True, False)
-            self.loadingObj = self.fontObj.render('carregando{}'.format('.'*self.doto), True, (0,0,0))
             self.doto += 1 if self.doto < 3 else -1
             self.frame_c = FPS
         self.frame_c -= 4
 
         surface.fill(pg.Color("white"))
-        surface.blit(self.textSurfaceObj, self.textRectObj)
-        surface.blit(self.loadingObj, self.loadingRectObj)
+        surface.blit(self.titleObj, self.titleRect)
+        surface.blit(self.enterObj, self.enterRect)
+        surface.blit(self.enterObj, self.enterRect)
+        surface.blit(self.escObj, self.escRect)
+        surface.blit(self.anoObj, self.anoRect)
         surface.blit(self.image, self.rect)   

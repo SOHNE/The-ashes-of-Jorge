@@ -25,6 +25,7 @@ class Gameplay(BaseState):
 
         self.fontObj = pg.font.Font('data/fonts/Minecraft.ttf', 26)
         self.textObj = self.fontObj.render('0 POINTS', True, (0,0,0))
+
         self.textRect = self.textObj.get_rect()
         self.textRect.center  = (186, 35)
 
@@ -45,7 +46,7 @@ class Gameplay(BaseState):
         self.all_sprites.add(self.inimigos)
         self.all_sprites.add(self.player)
         self.all_sprites.add(self.objects)
-        self.persist['score'] = self.player.attributes['SCORE']
+        self.persist['score'] = int(self.player.attributes['SCORE'])
         #
 
         for i in range(0, self.stage['H']):
@@ -72,10 +73,6 @@ class Gameplay(BaseState):
                 self.player.go_right()
             if event.key == pg.K_SPACE:
                 self.player.jump()
-            if event.key == pg.K_UP:
-                self.next_state = "OVER"
-                self.persist['score'] = self.player.attributes['SCORE']
-                self.done = True
 
         if event.type == pg.KEYUP:
             if event.key == pg.K_a and self.player.x_ < 0:
@@ -84,13 +81,18 @@ class Gameplay(BaseState):
                 self.player.stop(2)
 
     def update(self, dt):
+        if self.player.attributes['HP'] > 25: self.player.attributes['HP'] = 25
         if self.player.attributes['HP'] <= 0:
             self.next_state = "OVER"
-            self.persist['score'] = self.player.attributes['SCORE']
+            self.persist['score'] = int(self.player.attributes['SCORE'])
             self.done = True
 
+        if int(self.player.attributes['SCORE']) >= 23042:
+            self.next_state = "WIN"
+            self.persist['score'] = int(self.player.attributes['SCORE'])
+            self.done = True
 
-        self.textObj = self.fontObj.render('{} PONTOS'.format(self.player.attributes['SCORE']), True, pg.Color("white"))
+        self.textObj = self.fontObj.render('{:.0f} PONTOS'.format(self.player.attributes['SCORE']), True, pg.Color("white"))
 
         tiroteio = pg.sprite.groupcollide(self.inimigos, self.balas, False, pg.sprite.collide_mask)
         #es = pg.sprite.spritecollideany(umb, all_sprites)
@@ -101,7 +103,7 @@ class Gameplay(BaseState):
                 if (dano >= inimigo.attributes['HP']) or (inimigo.attributes['HP'] < 0) and not self.player.invencibilidade:
                     bala[0].kill()
                     inimigo.morre(self.all_sprites, self.objects, player=True)
-                    self.player.attributes['SCORE'] += inimigo.attributes['SCORE']
+                    self.player.attributes['SCORE'] += int(inimigo.attributes['SCORE'])
                     self.player.chargeUlt(inimigo.attributes['SCORE'] // 3)
                 else:
                     inimigo.attributes['HP'] -= dano
@@ -116,7 +118,7 @@ class Gameplay(BaseState):
                 dano = self.player.attributes['ATT'] - contato.attributes['DEF']
                 if (dano >= contato.attributes['HP']) or (contato.attributes['HP'] < 0):
                     contato.morre(self.all_sprites, self.objects, player=True)
-                    self.player.attributes['SCORE'] += contato.attributes['SCORE']
+                    self.player.attributes['SCORE'] += int(contato.attributes['SCORE'])
                     change = random.randint( (contato.attributes['SCORE'] // 3) //2, contato.attributes['SCORE'] // 3)
                     self.player.chargeUlt(change)
                 else:
@@ -125,18 +127,19 @@ class Gameplay(BaseState):
 
         contato = pg.sprite.spritecollideany(self.player, self.objects)
         if contato:
-            self.player.attributes['HP'] += 1 if self.player.attributes['HP'] < self.player.attributes['MAXHP'] else 0
-            contato.kill()
+            contato.pega()
 
         if len(self.inimigos) == 0:
             self.stage['H'] += 3
             for i in range(0, self.stage['H']):
-                bala = Inimigo(self.player)
+                bala = Inimigo(self.player, self.stage['H'])
 
                 self.all_sprites.add(bala)
                 self.inimigos.add(bala)
 
     def draw(self, surface):
+        self.aObj = self.fontObj.render('ATQ: {}'.format(self.player.attributes['ATT']), True, pg.Color("white"))
+        self.dObj = self.fontObj.render('DEF: {}'.format(self.player.attributes['DEF']), True, pg.Color("white"))
         if self.player.rect.x <= 0:
             self.player.rect.x = 0
         elif self.player.rect.x >= WIDTH - self.player.rect.size[0]:
@@ -145,8 +148,8 @@ class Gameplay(BaseState):
         elif self.player.rect.x > self.stage['I'] and (self.player.rect.x < self.stage['W'] - self.stage['I'] + 250):
             self.stage['X'] -= self.player.x_ / 2.2
             for o, i in zip(self.objects, self.inimigos):
-                o.rect.x -= self.player.x_ / 1.6
-                i.rect.x -= self.player.x_ / 1.6
+                o.rect.x -= self.player.x_ // 1.6
+                i.rect.x -= self.player.x_ // 1.6
 
         else: self.stage['X'] = 0
 
@@ -154,6 +157,8 @@ class Gameplay(BaseState):
         self.all_sprites.update()
         self.all_sprites.draw(surface)
         surface.blit(self.textObj, self.textRect)
+        surface.blit(self.aObj, (120, 65))
+        surface.blit(self.dObj, (120, 92))
 
         try:
             pg.draw.rect(surface, (245,0,0), (120, 50, 200 - (2 * (50 - self.player.attributes['MAXHP'])), 10) )

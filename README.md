@@ -15,8 +15,27 @@ Leandro
 - [Darwin](https://stackoverflow.com/questions/30743194/pygame-installation-mac-os-x#34081126)
 
 - ```pip3 install psutil```
+
+ou
+```pip3 install requirements.txt```
 ## Execução
 ```python3 -B main.py```
+
+## Comandos
+```
+A, D  - Esquerda, Direita
+
+SPACE - Pulo
+
+K     - Tiro
+```
+
+## Conceitos
+- Não deixe a sua vida chegar à 0 e mantenha um score alto.
+- Haverá itens dropados aleatoriamente que abastacem os atributos de vida, ataque e defesa.
+- Os inimigos também serão supridos, na medida em que o score aumente.
+- O que é printado no terminal de comando é, em verdade, o dicionário de atributos dos inimigos.
+
 ___
-[![readme version](https://img.shields.io/badge/%2F~.-lightgrey.svg?style=flat-square&colorA=808080&colorB=808080)![readme version](https://img.shields.io/badge/13%2F11%2F18--lightgrey.svg?style=flat-square&colorA=000000&colorB=ffffff)](https://works.sohne.com.br/taoj)
+[![readme version](https://img.shields.io/badge/%2F~.-lightgrey.svg?style=flat-square&colorA=808080&colorB=808080)![readme version](https://img.shields.io/badge/17%2F11%2F18--lightgrey.svg?style=flat-square&colorA=000000&colorB=ffffff)](https://works.sohne.com.br/taoj)
 

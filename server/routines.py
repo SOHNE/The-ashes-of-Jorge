@@ -3,6 +3,7 @@
 import os
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
+
 def path_join(name):
     r"""
     Relativo à informação acerca do diretório em execução
